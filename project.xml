@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="Platform Racing 2" package="com.jiggmin.pr2" version="0.0.1" company="Jiggmin" />
+
+	<app main="Main" path="export" file="PlatformRacing2" />
+
+	<source path="haxe/src" />
+	<assets path="assets" rename="assets" exclude="fonts|blocks|login" if="html5" />
+	<assets path="assets" rename="assets" exclude="fonts|blocks|login" unless="html5" />
+
+	<!-- Embedded fonts. Mapped to the original PR2 face names by pr2.runtime.FontResolver.
+	     DejaVu Sans (Verdana stand-in, metric-compatible) is split into distinct family
+	     names per weight so OpenFL's __fontByName variant lookup resolves bold/italic to the
+	     real outlines instead of browser faux-synthesis. -->
+	<assets path="assets/fonts" rename="assets/fonts" include="*.ttf" embed="true" />
+	<assets path="assets/blocks" rename="assets/blocks" />
+	<!-- bg_front contains an embedded source bitmap in Animate's SVG export, so
+	     it remains raster until the original artwork is replaced with vectors. -->
+	<assets path="assets/login" rename="assets/login" include="bg_front@2x.png" />
+	<!-- Source SVGs are grouped into text packs so HTML5 startup does not issue one
+	     request per vector. SvgAsset preserves the assets/svg/... caller API. -->
+	<assets path="art/svg-packs" rename="assets/svg-packs" include="*.json" />
+	<assets path="art/rigs/character-rig.json" rename="character-rig.json" />
+	<assets path="art/intro" rename="assets/intro" include="*.json" />
+	<assets path="art/effects" rename="assets/effects" include="*.json" />
+	<assets path="art/ui" rename="assets/ui" include="*.json" />
+	<asset path="assets/bitmaps/mine.jpg" />
+	<template path="templates/html5/template/index.html" rename="index.html" if="html5" />
+
+	<haxelib name="openfl" />
+	<haxelib name="svg" />
+	<!-- Rasterize character parts and hat bases in local coordinates at their
+	     final browser scale; animated hat overlays use pre-rendered frame sets. -->
+	<haxedef name="pr2_explicit_character_part_bitmap_cache" if="html5" />
+	<postbuild command="python3 tools/prune_html5_fonts.py" if="html5" />
+	<postbuild command="python3 tools/minify_html5_js.py" if="html5" unless="debug" />
+	<postbuild command="python3 tools/check_no_compat_runtime.py" if="html5" />
+	<postbuild command="python3 tools/cache_bust_html5_js.py" if="html5" />
+
+	<!-- Flatten static, render-safe display subtrees into one cached GPU quad.
+	     On by default: measured the lobby 18.7fps -> 60fps (vsync cap) with a
+	     sub-perceptual (<=2/255) anti-alias delta. Runtime gates ensure only
+	     static and safe subtrees are cached. Remove this
+	     define to A/B against the un-flattened render. -->
+	<haxedef name="pr2_flatten_cache" />
+
+	<window width="550" height="400" fps="30" background="#242A3A" resizable="true" if="html5" />
+	<window width="550" height="400" fps="30" background="#242A3A" resizable="false" unless="html5" />
+</project>
